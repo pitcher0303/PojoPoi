@@ -176,18 +176,22 @@ public class ExcelModel {
                             writeValueMeta(this.sheet, rowHeaderMeta, startYAxis);
                         }
                         try {
-                            List<ExcelData> innerExcelDatas = (List<ExcelData>) field.get(excelData);
+                            if(!Collection.class.isAssignableFrom(field.getType())) {
+                                throw new RuntimeException(String.format("필드 %s 는 컬렉션이 아닙니다., RowMeta 는 컬렉션에 적용 가능합니다.", field.getName()));
+                            }
+                            Collection<ExcelData> innerExcelDatas = (Collection<ExcelData>) field.get(excelData);
                             if (innerExcelDatas == null) {
                                 System.out.printf("filed data is null, filed name: %s", field.getName());
                                 return;
                             }
                             //Row Meta 데이터를 먼저 쓰고 난 후 머지를 한다.
+                            Iterator<ExcelData> iterator = innerExcelDatas.iterator();
                             for (
                                     int i = 0, firstYAxis = ExcelUtils.sumYAxis(startYAxis, rowMeta.startYAxis()), lastYAxis;
-                                    i < innerExcelDatas.size();
+                                    iterator.hasNext();
                                     i++, firstYAxis = lastYAxis + 1
                             ) {
-                                writeExcelData(innerExcelDatas.get(i), firstYAxis);
+                                writeExcelData(iterator.next(), firstYAxis);
                                 //merge 할 마지막 row
                                 lastYAxis = ExcelUtils.rownumToYAxis(this.sheet.getLastRowNum());
                                 if (ExcelMaster.isGroupBy(rowMeta)) {
@@ -301,7 +305,7 @@ public class ExcelModel {
         //TODO: 데이터는 아직 String 만 지원, 여러 데이터 형을 지원할 필요가 있을까?
         public void writeToCell(Sheet sheet, String xAxis, int yAxis, String data) {
 //            System.out.printf("write to cell...셀: %s%s, data: %s%n", xAxis, yAxis, data);
-            System.out.printf("write to cell...셀: %s%s%n", xAxis, yAxis);
+//            System.out.printf("write to cell...셀: %s%s%n", xAxis, yAxis);
             cell(row(sheet, yAxis), xAxis).setCellValue(data);
         }
 

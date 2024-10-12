@@ -54,9 +54,14 @@ public class ExcelController {
 
     public Report sampleReport() {
         Report report = new Report();
+        report.getProjectList().add(sampleProject1());
+        report.getProjectList().add(sampleProject2());
 
+        return report;
+    }
+
+    public Project sampleProject1() {
         Project project = new Project();
-        report.getProjectList().add(project);
         project.setProjectType("SI");
         project.setProjectName("NW빅데이터 분석시스템 \nSSO적용 및 통합 권한 관리 체계 구축");
         project.setProjectManager("박현찬");
@@ -226,6 +231,89 @@ public class ExcelController {
                  - 프로세스 상세 설계서
                 """);
 
-        return report;
+        return project;
     }
+    public Project sampleProject2() {
+        Project project = new Project();
+        project.setProjectType("SI");
+        project.setProjectName("NW빅데이터 분석시스템 \nDenodo 연동");
+        project.setProjectManager("박현찬");
+        project.setProgressRate("10%");
+        project.setIssues("""
+                금주, 차주 구분이 모호 하여 업무 처리 대상을 밑줄 표기함.
+                """);
+
+        Category category1 = new Category();
+        project.getCategories().add(category1);
+        category1.setCategoryType("1. 관리");
+        category1.setThisWeek("");
+        category1.setNextWeek("");
+
+        Category category2 = new Category();
+        project.getCategories().add(category2);
+        category2.setCategoryType("2. 분석");
+        category2.setThisWeek("""
+                . Denodo Okta, 권한 연동 방안(20%)
+                  - Denodo View 권한, 개인정보 조회 권한연동을 위한 분석
+                   * (View 권한) 데이터 카탈로그 API 분석
+                   * (View 권한) View 권한 연동 인터페이스 및 연동 프로시저 분석
+                """);
+        category2.setNextWeek("""
+                . Denodo Okta, 권한 연동 방안(20%)
+                  - Denodo View 권한, 개인정보 조회 권한연동을 위한 분석
+                   * (View 권한) 데이터 카탈로그 API 분석
+                   * (View 권한) View 권한 연동 인터페이스 및 연동 프로시저 분석
+                """);
+
+        Category category3 = new Category();
+        project.getCategories().add(category3);
+        category3.setCategoryType("3. 설계");
+        category3.setThisWeek("");
+        category3.setNextWeek("");
+
+        Category category4 = new Category();
+        project.getCategories().add(category4);
+        category4.setCategoryType("4. 개발");
+        category4.setThisWeek("""
+                . Denodo Okta, 권한 연동 방안(60%)
+                  - Denodo 그룹 생성을 위한 테이블 설계(100%)
+                  - Denodo 그룹 생성을 위한 테이블 스키마 변경(100%)
+                  - Denodo 그룹 생성을 위한 테이블 스키마 추가 변경(100%)
+                """);
+        category4.setNextWeek("""
+                . Denodo Okta, 권한 연동 방안(60%)
+                  - Denodo 그룹 생성을 위한 테이블 설계(100%)
+                  - Denodo 그룹 생성을 위한 테이블 스키마 변경(100%)
+                  - Denodo 그룹 생성을 위한 테이블 스키마 추가 변경(100%)
+                  - Denodo View 권한 연동 인터페이스 테이블 설계(100%)
+                  - Denodo 개인정보 권한 연동 인터페이스 테이블 설계(100%)
+                
+                . Denodo 인터페이스 배치 개발(100%)
+                  - Denodo 그룹 생성을 위한 사용자 정보 데이터 동기화 배치 개발(100%)
+                   * 기존에 있던 user-sync-batch 모듈에 기능 추가 예정
+                
+                . Denodo 인터페이스 배치 개발(60%)
+                  - Denodo 그룹 생성을 위한 사용자 정보 데이터 동기화 배치 개발(100%)
+                
+                """);
+
+        Category category7 = new Category();
+        project.getCategories().add(category7);
+        category7.setCategoryType("4. 개발(CI/CD)");
+        category7.setThisWeek("""
+                """);
+        category7.setNextWeek("""
+                """);
+
+        Category category8 = new Category();
+        project.getCategories().add(category8);
+        category8.setCategoryType("5. 검수");
+        category8.setThisWeek("""
+                """);
+        category8.setNextWeek("""
+                """);
+
+        return project;
+    }
+
 }
