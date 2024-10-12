@@ -53,23 +53,14 @@ public class ExcelMaster {
                         //지원 예정
                     }
                     case Y_RANDOM -> {
-                        value = yRandomRowMetaData(sheet, rowMeta, startRow);
+                        if (isGroupBy(rowMeta)) {
+                            value = yRandomRowMetaData(sheet, rowMeta, startRow);
+                        } else {
+                            value = mergeRowMetaData(sheet, rowMeta);
+                        }
                     }
                     case X_RANDOM -> {
                         //지원 예정
-                    }
-                    case X_MERGE -> {
-                        //지원 예정
-                    }
-                    case Y_MERGE -> {
-                        //지원 예정
-                    }
-                    case X_MERGE_RANDOM -> {
-                        //지원 예정
-                    }
-                    case Y_MERGE_RANDOM -> {
-                        //지원 예정
-                        value = mergeRowMetaData(sheet, rowMeta);
                     }
                 }
             }
@@ -140,5 +131,9 @@ public class ExcelMaster {
             }
         }
         return targets;
+    }
+
+    public static boolean isGroupBy(RowMeta rowMeta) {
+        return rowMeta.groupBys().length > 0;
     }
 }

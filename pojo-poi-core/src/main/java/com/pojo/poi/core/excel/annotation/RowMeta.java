@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RowMeta {
     public RowType rowType() default RowType.RANGE;
@@ -24,7 +24,7 @@ public @interface RowMeta {
 
     public boolean isGroupBy() default false;
 
-    public GroupByMeta[] groupBys() default @GroupByMeta(type = GroupByMeta.Type.NONE);
+    public GroupByMeta[] groupBys() default {};
 
-    public enum RowType {RANGE, Y_RANDOM, X_RANDOM, X_MERGE, Y_MERGE, X_MERGE_RANDOM, Y_MERGE_RANDOM}
+    public enum RowType {RANGE, Y_RANDOM, X_RANDOM}
 }

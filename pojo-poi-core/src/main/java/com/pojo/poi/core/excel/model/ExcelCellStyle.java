@@ -27,6 +27,10 @@ public enum ExcelCellStyle {
         cellStyle = cellStyleMap.get(this);
         cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
+        if(!fontMap.containsKey(this)) {
+            fontMap.put(this, new XSSFFont());
+        }
+
         Font font = fontMap.get(this);
         font.setFontName("");
         font.setFontHeightInPoints((short) 11);
@@ -83,7 +87,7 @@ public enum ExcelCellStyle {
             //얇은 테두리 | 굵은 글씨 | 가운데 정렬 | 주황색
             case HEADER_CELL3 -> {
                 cellStyle.setAlignment(HorizontalAlignment.CENTER);
-                byte[] rgb = {(byte) 192, (byte) 192, (byte) 192};
+                byte[] rgb = {(byte) 255, (byte) 204, (byte) 153};
                 ((XSSFCellStyle)cellStyle).setFillBackgroundColor(new XSSFColor(rgb));
                 cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
                 cellStyle.setBorderRight(BorderStyle.THIN);

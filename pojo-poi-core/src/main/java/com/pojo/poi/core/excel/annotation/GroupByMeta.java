@@ -10,8 +10,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface GroupByMeta {
-    Type type() default Type.NONE;
-
     DataType dataType() default DataType.AUTO_INCREMENT;
 
     String[] xAxis() default "A";
@@ -19,8 +17,6 @@ public @interface GroupByMeta {
     int[] yAxis() default 1;
 
     ExcelCellStyle cellStyle() default ExcelCellStyle.NONE;
-
-    public enum Type {NONE, Y_MERGE}
 
     public enum DataType {AUTO_INCREMENT, CELL_DATA}
 }

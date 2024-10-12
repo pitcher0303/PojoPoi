@@ -3,6 +3,7 @@ package com.pojo.poi.core.excel;
 import com.pojo.poi.core.excel.annotation.*;
 import com.pojo.poi.core.excel.model.ExcelCellStyle;
 import com.pojo.poi.core.excel.model.ExcelData;
+import lombok.Getter;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.util.Units;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 
+@Getter
 public class ExcelModel {
     private static final String DEFAULT_SHEET_NAME = "sheet";
     private final Map<ExcelCellStyle, CellStyle> cellStyles = new HashMap<>();
@@ -272,28 +274,32 @@ public class ExcelModel {
             Arrays.sort(yAxes);
             if (xAxes.length > 1 || yAxes.length > 1) {
                 mergingCells(sheet, xAxes, yAxes, valueMeta.value());
+            } else {
+                writeToCell(sheet, xAxes[0], yAxes[0], valueMeta.value());
             }
-            writeToCell(sheet, xAxes[0], yAxes[0], valueMeta.value());
         }
 
         //TODO: 데이터는 아직 String 만 지원, 여러 데이터 형을 지원할 필요가 있을까?
         public void mergingCells(Sheet sheet, String[] xAxes, int[] yAxes, Object data) {
-            for (String xAxis : xAxes) {
-                for (int yAxis : yAxes) {
-                    if (data != null) {
-                        writeToCell(sheet, xAxis, yAxis, toStringData(data));
-                    }
-                }
+            Arrays.sort(xAxes);
+            Arrays.sort(xAxes);
+            writeToCell(sheet, xAxes[0], yAxes[0], toStringData(data));
+            if (xAxes.length == 1 && yAxes.length == 1) {
+                return;
             }
-            Arrays.sort(xAxes);
-            Arrays.sort(xAxes);
-            if (xAxes.length == 1 && yAxes.length == 1) return;
             sheet.addMergedRegion(new CellRangeAddress(
                     ExcelUtils.yAxisToRownum(yAxes[0]),
                     ExcelUtils.yAxisToRownum(yAxes[yAxes.length - 1]),
                     ExcelUtils.xAxisToCellNum(xAxes[0]),
                     ExcelUtils.xAxisToCellNum(xAxes[xAxes.length - 1])
             ));
+//            for (String xAxis : xAxes) {
+//                for (int yAxis : yAxes) {
+//                    if (data != null) {
+//                        writeToCell(sheet, xAxis, yAxis, toStringData(data));
+//                    }
+//                }
+//            }
         }
 
         //TODO: 데이터는 아직 String 만 지원, 여러 데이터 형을 지원할 필요가 있을까?
@@ -317,7 +323,7 @@ public class ExcelModel {
 
         public Row row(Sheet sheet, int yAxis) {
             int rowNum = ExcelUtils.yAxisToRownum(yAxis);
-            Row row = sheet.createRow(rowNum);
+            Row row = sheet.getRow(rowNum);
             if (row == null) row = sheet.createRow(rowNum);
             return row;
         }
