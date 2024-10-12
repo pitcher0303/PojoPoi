@@ -1,7 +1,7 @@
 package com.pojo.poi.core.excel;
 
 import com.pojo.poi.core.excel.annotation.CellMeta;
-import com.pojo.poi.core.excel.annotation.ModelMeta;
+import com.pojo.poi.core.excel.annotation.ExcelMeta;
 import com.pojo.poi.core.excel.annotation.RowMeta;
 import com.pojo.poi.core.excel.annotation.ValueMeta;
 import com.pojo.poi.core.excel.model.ExcelData;
@@ -18,19 +18,13 @@ import java.util.stream.Collectors;
 public class ExcelMaster {
     public static <T extends ExcelData> T readSheet(Class<T> to, Sheet sheet) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         T toInstnace = to.getConstructor().newInstance();
-        if (!to.isAnnotationPresent(ModelMeta.class)) return toInstnace;
+        if (!to.isAnnotationPresent(ExcelMeta.class)) return toInstnace;
 
-        ModelMeta modelMeta = to.getAnnotation(ModelMeta.class);
-        switch (modelMeta.type()) {
-            case NORMAL -> {
+        ExcelMeta excelMeta = to.getAnnotation(ExcelMeta.class);
                 readToInstance(toInstnace,
                         sheet,
-                        ExcelUtils.yAxisToRownum(modelMeta.startYAxis()),
-                        ExcelUtils.yAxisToRownum(modelMeta.endYAxis()));
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + modelMeta.type());
-        }
-
+                        ExcelUtils.yAxisToRownum(excelMeta.startYAxis()),
+                        ExcelUtils.yAxisToRownum(excelMeta.endYAxis()));
         return toInstnace;
     }
 

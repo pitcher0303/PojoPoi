@@ -22,8 +22,6 @@ public @interface RowMeta {
 
     public ValueMeta[] headerMetas() default {};
 
-    public boolean isGroupBy() default false;
-
     public GroupByMeta[] groupBys() default {};
 
     public enum RowType {RANGE, Y_RANDOM, X_RANDOM}

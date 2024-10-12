@@ -23,6 +23,14 @@ public class ExcelUtils {
 
     public static Integer yAxisToRownum(int yAxis) {return yAxis - 1;}
 
+    public static Integer sumYAxis(int... yAxis) {
+        int sum = 0;
+        for(int y : yAxis) {
+            sum += y;
+        }
+        return yAxis.length > 1 ? sum - yAxis.length + 1 : sum;
+    }
+
     public static Integer rownumToYAxis(int rownum) {return rownum + 1;}
 
     public static List<Integer> yAxisToRownums(int... yAxis) {

@@ -1,17 +1,17 @@
 package com.pojo.poi.core.excel.annotation;
 
 import com.pojo.poi.core.excel.model.ExcelCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.function.Consumer;
 
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CellMeta {
-    AxisType axisType() default AxisType.NORMAL;
-
     String[] xAxis() default "A";
 
     int[] yAxis() default 1;
@@ -20,5 +20,5 @@ public @interface CellMeta {
 
     ExcelCellStyle cellStyle() default ExcelCellStyle.NONE;
 
-    public enum AxisType {NORMAL, Y_RANDOM, X_RANDOM}
+    boolean fitSize() default false;
 }

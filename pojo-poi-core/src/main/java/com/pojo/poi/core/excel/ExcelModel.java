@@ -138,26 +138,23 @@ public class ExcelModel {
         }
 
         public void write(List<? extends ExcelData> excelDatas) {
-            this.write(excelDatas, 0);
+            this.write(excelDatas, 1);
         }
 
-        public void write(List<? extends ExcelData> excelDatas, int startRow) {
-            excelDatas.forEach(excelData -> this.writeExcelData(excelData, startRow));
+        public void write(List<? extends ExcelData> excelDatas, int startYAxis) {
+            excelDatas.forEach(excelData -> this.writeExcelData(excelData, startYAxis));
         }
 
-        public void writeExcelData(ExcelData excelData, final int startRow) {
-            if (!excelData.getClass().isAnnotationPresent(ModelMeta.class)) return;
+        public void writeExcelData(ExcelData excelData, final int startYAxis) {
+            if (!excelData.getClass().isAnnotationPresent(ExcelMeta.class)) return;
 
             Map<String, Field> targetFields = ExcelMaster.excelTargetFields(excelData.getClass());
 
-            ModelMeta modelMeta = excelData.getClass().getAnnotation(ModelMeta.class);
-            int modelMetaStartRow = ExcelUtils.yAxisToRownum(modelMeta.startYAxis()) + startRow;
-            ValueMeta[] headerMetas = modelMeta.headerMetas();
+            ExcelMeta excelMeta = excelData.getClass().getAnnotation(ExcelMeta.class);
+            ValueMeta[] headerMetas = excelMeta.headerMetas();
             for (ValueMeta headerMeta : headerMetas) {
-                writeValueMeta(this.sheet, headerMeta, modelMetaStartRow);
+                writeValueMeta(this.sheet, headerMeta, ExcelUtils.sumYAxis(excelMeta.startYAxis(), startYAxis));
             }
-            //TODO: CellMeta, RowMeta 기준이 아닌 Y_RANDOM 기준으로 바꿔야 함.
-            //TODO: Y_RANDOM 의 경우 시작 row 값을 알 수 없으므로 불가능함.
             targetFields.values().stream()
                     .filter(field -> field.isAnnotationPresent(CellMeta.class))
                     .forEach(field -> {
@@ -168,34 +165,38 @@ public class ExcelModel {
                         } catch (IllegalAccessException e) {
                             e.printStackTrace();
                         }
-                        writeCellData(this.sheet, cellMeta, startRow, data);
+                        writeCellData(this.sheet, cellMeta, startYAxis, data);
                     });
             targetFields.values().stream()
                     .filter(field -> field.isAnnotationPresent(RowMeta.class))
                     .forEach(field -> {
-                        int fieldStartRow = startRow;
                         RowMeta rowMeta = field.getAnnotation(RowMeta.class);
                         ValueMeta[] rowHeaderMetas = rowMeta.headerMetas();
                         for (ValueMeta rowHeaderMeta : rowHeaderMetas) {
-                            writeValueMeta(this.sheet, rowHeaderMeta, fieldStartRow);
+                            writeValueMeta(this.sheet, rowHeaderMeta, startYAxis);
                         }
-                        fieldStartRow += ExcelUtils.yAxisToRownum(rowMeta.startYAxis());
                         try {
                             List<ExcelData> innerExcelDatas = (List<ExcelData>) field.get(excelData);
                             if (innerExcelDatas == null) {
                                 System.out.printf("filed data is null, filed name: %s", field.getName());
                                 return;
                             }
-                            for (int i = 0, listStartRow = fieldStartRow, listLastRow; i < innerExcelDatas.size(); i++, listStartRow = listLastRow + 1) {
-                                writeExcelData(innerExcelDatas.get(i), listStartRow);
-                                listLastRow = this.sheet.getLastRowNum();
-                                if (rowMeta.isGroupBy()) {
-                                    if (listStartRow == listLastRow) continue;
+                            //Row Meta 데이터를 먼저 쓰고 난 후 머지를 한다.
+                            for (
+                                    int i = 0, firstYAxis = ExcelUtils.sumYAxis(startYAxis, rowMeta.startYAxis()), lastYAxis;
+                                    i < innerExcelDatas.size();
+                                    i++, firstYAxis = lastYAxis + 1
+                            ) {
+                                writeExcelData(innerExcelDatas.get(i), firstYAxis);
+                                //merge 할 마지막 row
+                                lastYAxis = ExcelUtils.rownumToYAxis(this.sheet.getLastRowNum());
+                                if (ExcelMaster.isGroupBy(rowMeta)) {
+                                    if (firstYAxis == lastYAxis) continue;
                                     GroupByMeta[] groupByMetas = rowMeta.groupBys();
                                     for (GroupByMeta groupByMeta : groupByMetas) {
                                         int[] yAxes = {
-                                                ExcelUtils.rownumToYAxis(listLastRow) + groupByMeta.yAxis()[0] - 1,
-                                                ExcelUtils.rownumToYAxis(listLastRow)
+                                                ExcelUtils.sumYAxis(firstYAxis, groupByMeta.yAxis()[0]),
+                                                lastYAxis
                                         };
                                         switch (groupByMeta.dataType()) {
                                             case AUTO_INCREMENT -> {
@@ -237,36 +238,30 @@ public class ExcelModel {
             writeToCell(sheet, xAxes[0], yAxes[0], toStringData(data));
         }
 
-        public void writeCellData(Sheet sheet, CellMeta cellMeta, final int startRow, Object data) {
-            writeValueMeta(sheet, cellMeta.headerMeta(), startRow);
+        public void writeCellData(Sheet sheet, CellMeta cellMeta, final int startYAxis, Object data) {
+            writeValueMeta(sheet, cellMeta.headerMeta(), startYAxis);
             String[] xAxes = cellMeta.xAxis();
             int[] yAxes = new int[cellMeta.yAxis().length];
-            switch (cellMeta.axisType()) {
-                case NORMAL -> {
-                }
-                case Y_RANDOM -> {
-                    for (int i = 0; i < yAxes.length; i++) {
-                        yAxes[i] = ExcelUtils.yAxisToRownum(cellMeta.yAxis()[i]) + ExcelUtils.rownumToYAxis(startRow);
-                    }
-                }
-                case X_RANDOM -> {
-                }
+            for (int i = 0; i < yAxes.length; i++) {
+                yAxes[i] = ExcelUtils.sumYAxis(cellMeta.yAxis()[i], startYAxis);
             }
             prepareRegion(sheet, xAxes, yAxes, cellMeta.cellStyle());
             Arrays.sort(xAxes);
             Arrays.sort(yAxes);
             if (xAxes.length > 1 || yAxes.length > 1) {
                 mergingCells(sheet, xAxes, yAxes, toStringData(data));
+            } else {
+                writeToCell(sheet, xAxes[0], yAxes[0], toStringData(data));
             }
         }
 
-        public void writeValueMeta(Sheet sheet, ValueMeta valueMeta, final int startRow) {
+        public void writeValueMeta(Sheet sheet, ValueMeta valueMeta, final int startYAxis) {
             if (valueMeta.value().isEmpty()) return;
 
             String[] xAxes = valueMeta.xAxis();
             int[] yAxes = new int[valueMeta.yAxis().length];
             for (int i = 0; i < yAxes.length; i++) {
-                yAxes[i] = ExcelUtils.yAxisToRownum(valueMeta.yAxis()[i]) + ExcelUtils.rownumToYAxis(startRow);
+                yAxes[i] = ExcelUtils.sumYAxis(valueMeta.yAxis()[i], startYAxis);
             }
 
             prepareRegion(sheet, xAxes, yAxes, valueMeta.cellStyle());
@@ -293,19 +288,11 @@ public class ExcelModel {
                     ExcelUtils.xAxisToCellNum(xAxes[0]),
                     ExcelUtils.xAxisToCellNum(xAxes[xAxes.length - 1])
             ));
-//            for (String xAxis : xAxes) {
-//                for (int yAxis : yAxes) {
-//                    if (data != null) {
-//                        writeToCell(sheet, xAxis, yAxis, toStringData(data));
-//                    }
-//                }
-//            }
         }
 
         //TODO: 데이터는 아직 String 만 지원, 여러 데이터 형을 지원할 필요가 있을까?
-        //TODO: 데이터를 중복으로 쓰는 문제가 있음. 로그 확인하여 바꿀 필요가 있음
         public void writeToCell(Sheet sheet, String xAxis, int yAxis, String data) {
-            System.out.printf("write to cell...X열: %s, Y열: %s, data: %s%n", xAxis, yAxis, data);
+            System.out.printf("write to cell...셀: %s%s, data: %s%n", xAxis, yAxis, data);
             cell(row(sheet, yAxis), xAxis).setCellValue(data);
         }
 
