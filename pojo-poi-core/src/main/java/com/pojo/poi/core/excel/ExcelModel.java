@@ -215,6 +215,8 @@ public class ExcelModel {
                     });
         }
 
+        //TODO: Gruop By 내에서 write 를 하게 되면 중복이 발생함
+        //  현재 로직 기준으로 cellMeta, RowMeta 데이터를 모두 Excel 에 기록 후 Group By 를 하게 되기 때문
         public void writeGroupBy(Sheet sheet, GroupByMeta groupByMeta, String[] xAxes, int[] yAxes) {
             //TODO: Group By Type 별 분기 추가 하기.
             if (xAxes == null) xAxes = groupByMeta.xAxis();
@@ -227,14 +229,22 @@ public class ExcelModel {
                 fromToYAxes[i] = fromToYAxesList.get(i);
             }
             prepareRegion(sheet, fromToXAxes, fromToYAxes, groupByMeta.cellStyle());
-            mergingCells(sheet, fromToXAxes, fromToYAxes, cell(row(sheet, yAxes[0]), xAxes[0]).getStringCellValue());
+            Arrays.sort(xAxes);
+            Arrays.sort(yAxes);
+            cellMerging(sheet, fromToXAxes, fromToYAxes);
+            writeToCell(sheet, xAxes[0], yAxes[0], cell(row(sheet, yAxes[0]), xAxes[0]).getStringCellValue());
+
         }
 
+        //TODO: Gruop By 내에서 write 를 하게 되면 중복이 발생함
+        //  현재 로직 기준으로 cellMeta, RowMeta 데이터를 모두 Excel 에 기록 후 Group By 를 하게 되기 때문
         public void writeGroupBy(Sheet sheet, GroupByMeta groupByMeta, String[] xAxes, int[] yAxes, Object data) {
             //TODO: Group By Type 별 분기 추가 하기.
             if (xAxes == null) xAxes = groupByMeta.xAxis();
             prepareRegion(sheet, xAxes, yAxes, groupByMeta.cellStyle());
-            mergingCells(sheet, xAxes, yAxes, data);
+            Arrays.sort(xAxes);
+            Arrays.sort(yAxes);
+            cellMerging(sheet, xAxes, yAxes);
             writeToCell(sheet, xAxes[0], yAxes[0], toStringData(data));
         }
 
@@ -249,10 +259,9 @@ public class ExcelModel {
             Arrays.sort(xAxes);
             Arrays.sort(yAxes);
             if (xAxes.length > 1 || yAxes.length > 1) {
-                mergingCells(sheet, xAxes, yAxes, toStringData(data));
-            } else {
-                writeToCell(sheet, xAxes[0], yAxes[0], toStringData(data));
+                cellMerging(sheet, xAxes, yAxes);
             }
+            writeToCell(sheet, xAxes[0], yAxes[0], toStringData(data));
         }
 
         public void writeValueMeta(Sheet sheet, ValueMeta valueMeta, final int startYAxis) {
@@ -268,17 +277,16 @@ public class ExcelModel {
             Arrays.sort(xAxes);
             Arrays.sort(yAxes);
             if (xAxes.length > 1 || yAxes.length > 1) {
-                mergingCells(sheet, xAxes, yAxes, valueMeta.value());
-            } else {
-                writeToCell(sheet, xAxes[0], yAxes[0], valueMeta.value());
+                cellMerging(sheet, xAxes, yAxes);
             }
+            writeToCell(sheet, xAxes[0], yAxes[0], valueMeta.value());
         }
 
         //TODO: 데이터는 아직 String 만 지원, 여러 데이터 형을 지원할 필요가 있을까?
-        public void mergingCells(Sheet sheet, String[] xAxes, int[] yAxes, Object data) {
+        public void cellMerging(Sheet sheet, String[] xAxes, int[] yAxes) {
             Arrays.sort(xAxes);
             Arrays.sort(xAxes);
-            writeToCell(sheet, xAxes[0], yAxes[0], toStringData(data));
+//            writeToCell(sheet, xAxes[0], yAxes[0], toStringData(data));
             if (xAxes.length == 1 && yAxes.length == 1) {
                 return;
             }
@@ -292,7 +300,8 @@ public class ExcelModel {
 
         //TODO: 데이터는 아직 String 만 지원, 여러 데이터 형을 지원할 필요가 있을까?
         public void writeToCell(Sheet sheet, String xAxis, int yAxis, String data) {
-            System.out.printf("write to cell...셀: %s%s, data: %s%n", xAxis, yAxis, data);
+//            System.out.printf("write to cell...셀: %s%s, data: %s%n", xAxis, yAxis, data);
+            System.out.printf("write to cell...셀: %s%s%n", xAxis, yAxis);
             cell(row(sheet, yAxis), xAxis).setCellValue(data);
         }
 
