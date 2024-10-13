@@ -30,7 +30,7 @@ public class ExcelController {
         Report report = sampleReport();
         ExcelModel model = ExcelModel.builder("테스트")
                 .build()
-                .addExcelDatas(List.of(report))
+                .addExcelDatas("보고서", List.of(report), new float[]{12.5f, 31.13f, 6.88f, 12f, 16.25f, 68.75f, 68.75f, 71.75f})
                 .writeAll()
                 .end();
         InputStreamResource resource = new InputStreamResource(model.getExcelStream());

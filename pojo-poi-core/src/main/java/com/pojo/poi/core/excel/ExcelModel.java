@@ -306,7 +306,14 @@ public class ExcelModel {
         public void writeToCell(Sheet sheet, String xAxis, int yAxis, String data) {
 //            System.out.printf("write to cell...셀: %s%s, data: %s%n", xAxis, yAxis, data);
 //            System.out.printf("write to cell...셀: %s%s%n", xAxis, yAxis);
-            cell(row(sheet, yAxis), xAxis).setCellValue(data);
+            Cell cell = cell(row(sheet, yAxis), xAxis);
+            CellStyle cellStyle = cell.getCellStyle();
+            if(cellStyle == null) {
+                cellStyle = sheet.getWorkbook().createCellStyle();
+                cell.setCellStyle(cellStyle);
+            }
+            cellStyle.setWrapText(true);
+            cell.setCellValue(data);
         }
 
         public void prepareRegion(Sheet sheet, String[] xAxes, int[] yAxes, ExcelCellStyle cellStyle) {
