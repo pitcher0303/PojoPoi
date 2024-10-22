@@ -1,12 +1,10 @@
 package com.pojo.poi.core.excel;
 
 import com.pojo.poi.core.excel.annotation.*;
-import com.pojo.poi.core.excel.model.ExcelCellStyle;
-import com.pojo.poi.core.excel.model.ExcelData;
+import com.pojo.poi.core.excel.style.ExcelCellStyle;
 import lombok.Getter;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.util.Units;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayInputStream;
@@ -18,8 +16,6 @@ import java.util.*;
 @Getter
 public class ExcelModel {
     private static final String DEFAULT_SHEET_NAME = "sheet";
-    private final Map<ExcelCellStyle, CellStyle> cellStyles = new HashMap<>();
-    private final Map<ExcelCellStyle, Font> fonts = new HashMap<>();
     private final XSSFWorkbook workbook;
     private final String originFileName;
     private final List<ExcelSheetModel> sheets = new ArrayList<>();
@@ -54,7 +50,7 @@ public class ExcelModel {
                 .filter(excelSheetModel -> excelSheetModel.sheetName.equals(sheetName))
                 .findAny();
         sheetModel.ifPresentOrElse(excelSheetModel -> excelSheetModel.excelDatas.addAll(excelDatas), () -> {
-            ExcelSheetModel excelSheetModel = new ExcelSheetModel(this.workbook, sheetName, cellWidths, this.cellStyles, this.fonts);
+            ExcelSheetModel excelSheetModel = new ExcelSheetModel(this.workbook, sheetName, cellWidths);
             excelSheetModel.excelDatas.addAll(excelDatas);
             this.sheets.add(excelSheetModel);
         });
@@ -88,8 +84,6 @@ public class ExcelModel {
     }
 
     private static class ExcelSheetModel {
-        Map<ExcelCellStyle, CellStyle> cellStyleMap;
-        Map<ExcelCellStyle, Font> fontMap;
         private final float[] defaultCellWiths = {};
         private final Sheet sheet;
         private final String sheetName;
@@ -97,14 +91,10 @@ public class ExcelModel {
 
         public ExcelSheetModel(Workbook workbook,
                                String sheetName,
-                               float[] cellWidths,
-                               Map<ExcelCellStyle, CellStyle> cellStyleMap,
-                               Map<ExcelCellStyle, Font> fontMap) {
+                               float[] cellWidths) {
             this.sheet = this.cresheet(workbook, sheetName);
             this.sheetName = sheetName;
             this.excelDatas = new ArrayList<>();
-            this.cellStyleMap = cellStyleMap;
-            this.fontMap = fontMap;
             this.setColumnWidths(cellWidths);
 
         }
@@ -113,20 +103,10 @@ public class ExcelModel {
             return workbook.createSheet(sheetName);
         }
 
-        /**
-         * Excel Cell Width 값을 Poi Width 값으로 변환
-         *
-         * @param excelCellWith excel 상 width 값
-         * @return Poi Width 값
-         */
-        private int width256(float excelCellWith) {
-            return (int) Math.floor((excelCellWith * Units.DEFAULT_CHARACTER_WIDTH + 5) / Units.DEFAULT_CHARACTER_WIDTH * 256);
-        }
-
         public void setColumnWidths(float[] cellWidths) {
             if (cellWidths == null || cellWidths.length == 0) cellWidths = this.defaultCellWiths;
             for (int i = 0; i < cellWidths.length; i++) {
-                sheet.setColumnWidth(i, width256(cellWidths[i]));
+                sheet.setColumnWidth(i, ExcelUtils.width256(cellWidths[i]));
             }
         }
 
@@ -286,11 +266,9 @@ public class ExcelModel {
             writeToCell(sheet, xAxes[0], yAxes[0], valueMeta.value());
         }
 
-        //TODO: 데이터는 아직 String 만 지원, 여러 데이터 형을 지원할 필요가 있을까?
         public void cellMerging(Sheet sheet, String[] xAxes, int[] yAxes) {
             Arrays.sort(xAxes);
             Arrays.sort(xAxes);
-//            writeToCell(sheet, xAxes[0], yAxes[0], toStringData(data));
             if (xAxes.length == 1 && yAxes.length == 1) {
                 return;
             }
@@ -304,16 +282,14 @@ public class ExcelModel {
 
         //TODO: 데이터는 아직 String 만 지원, 여러 데이터 형을 지원할 필요가 있을까?
         public void writeToCell(Sheet sheet, String xAxis, int yAxis, String data) {
-//            System.out.printf("write to cell...셀: %s%s, data: %s%n", xAxis, yAxis, data);
-//            System.out.printf("write to cell...셀: %s%s%n", xAxis, yAxis);
             Cell cell = cell(row(sheet, yAxis), xAxis);
+            cell.setCellValue(data);
             CellStyle cellStyle = cell.getCellStyle();
             if(cellStyle == null) {
                 cellStyle = sheet.getWorkbook().createCellStyle();
                 cell.setCellStyle(cellStyle);
             }
             cellStyle.setWrapText(true);
-            cell.setCellValue(data);
         }
 
         public void prepareRegion(Sheet sheet, String[] xAxes, int[] yAxes, ExcelCellStyle cellStyle) {
@@ -322,10 +298,23 @@ public class ExcelModel {
                 for (String xAxis : xAxes) {
                     Cell cell = cell(row, xAxis);
                     if (cellStyle != null) {
-                        cellStyle.applyCellStyle(cell, this.cellStyleMap, this.fontMap);
+                        //TODO: 대체하기
+//                        cellStyle.applyCellStyle(cell, this.cellStyleMap, this.fontMap);
                     }
                 }
             }
+        }
+
+        public void applyCellStyle(Cell cell, ExcelCellStyle excelCellStyle) {
+            CellStyle cellStyle = cell.getCellStyle();
+            if(cellStyle == null) {
+                cellStyle = cell.getSheet().getWorkbook().createCellStyle();
+            }
+
+        }
+
+        //TODO: row style 은 고민해 보기
+        public void applyRowStyle(Row row, ExcelCellStyle excelCellStyle) {
         }
 
         public Row row(Sheet sheet, int yAxis) {

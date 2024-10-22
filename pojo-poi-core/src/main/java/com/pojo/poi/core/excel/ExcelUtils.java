@@ -1,5 +1,7 @@
 package com.pojo.poi.core.excel;
 
+import org.apache.poi.util.Units;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,5 +66,15 @@ public class ExcelUtils {
 
     public static boolean isMergedCell(List<Integer> cellnum, List<Integer> rownum) {
         return cellnum.size() > 1 || rownum.size() > 1;
+    }
+
+    /**
+     * Excel Cell Width 값을 Poi Width 값으로 변환
+     *
+     * @param excelCellWith excel 상 width 값
+     * @return Poi Width 값
+     */
+    public static int width256(float excelCellWith) {
+        return (int) Math.floor((excelCellWith * Units.DEFAULT_CHARACTER_WIDTH + 5) / Units.DEFAULT_CHARACTER_WIDTH * 256);
     }
 }

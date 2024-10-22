@@ -1,6 +1,6 @@
 package com.pojo.poi.core.excel.annotation;
 
-import com.pojo.poi.core.excel.model.ExcelCellStyle;
+import com.pojo.poi.core.excel.style.ExcelCellStyle;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,5 +16,5 @@ public @interface ValueMeta {
 
     String value() default "";
 
-    ExcelCellStyle cellStyle() default ExcelCellStyle.NONE;
+    ExcelCellStyle cellStyle() default @ExcelCellStyle;
 }

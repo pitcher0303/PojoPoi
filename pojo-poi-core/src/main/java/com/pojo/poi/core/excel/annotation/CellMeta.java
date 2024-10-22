@@ -1,13 +1,11 @@
 package com.pojo.poi.core.excel.annotation;
 
-import com.pojo.poi.core.excel.model.ExcelCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import com.pojo.poi.core.excel.style.ExcelCellStyle;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.function.Consumer;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -18,7 +16,5 @@ public @interface CellMeta {
 
     ValueMeta headerMeta() default @ValueMeta;
 
-    ExcelCellStyle cellStyle() default ExcelCellStyle.NONE;
-
-    boolean fitSize() default false;
+    ExcelCellStyle cellStyle() default @ExcelCellStyle;
 }

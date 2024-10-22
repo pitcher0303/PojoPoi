@@ -1,6 +1,6 @@
 package com.pojo.poi.core.excel.annotation;
 
-import com.pojo.poi.core.excel.model.ExcelCellStyle;
+import com.pojo.poi.core.excel.style.ExcelCellStyle;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,7 +16,7 @@ public @interface GroupByMeta {
 
     int[] yAxis() default 1;
 
-    ExcelCellStyle cellStyle() default ExcelCellStyle.NONE;
+    ExcelCellStyle cellStyle() default @ExcelCellStyle;
 
     public enum DataType {AUTO_INCREMENT, CELL_DATA}
 }

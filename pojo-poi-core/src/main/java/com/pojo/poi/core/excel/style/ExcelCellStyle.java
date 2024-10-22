@@ -1,9 +1,14 @@
 package com.pojo.poi.core.excel.style;
 
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.apache.poi.ss.usermodel.*;
 
+import java.lang.annotation.*;
+
+/**
+ * 기본적인 셀 스타일
+ */
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface ExcelCellStyle {
     boolean wrapText() default false;
     HorizontalAlignment horizontalAlignment() default HorizontalAlignment.LEFT;
@@ -12,6 +17,8 @@ public @interface ExcelCellStyle {
     BorderStyle borderRight() default BorderStyle.NONE;
     BorderStyle borderBottom() default BorderStyle.NONE;
     BorderStyle borderLeft() default BorderStyle.NONE;
-    RgbColor backgroundColor() default @RgbColor;
-    ExcelCellFont font() default @ExcelCellFont;
+    FillPatternType fillPattern() default FillPatternType.SOLID_FOREGROUND;
+    ExcelCellFont font() default @ExcelCellFont(color = @ExcelColor(indexedColor = IndexedColors.BLACK));
+    ExcelColor foregroundColor() default @ExcelColor(indexedColor = IndexedColors.WHITE1);
+    ExcelColor backgroundColor() default @ExcelColor(indexedColor = IndexedColors.WHITE1);
 }

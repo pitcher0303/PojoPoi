@@ -9,7 +9,13 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ExcelCellFont {
-    boolean bold() default false;
-    ExcelColor color() default @ExcelColor(indexedColor = IndexedColors.BLACK);
+public @interface ExcelColor {
+    Type type() default Type.indexed;
+    IndexedColors indexedColor() default IndexedColors.WHITE;
+    RgbColor rgbColor() default @RgbColor();
+
+    public enum Type {
+        indexed,
+        rgb
+    }
 }

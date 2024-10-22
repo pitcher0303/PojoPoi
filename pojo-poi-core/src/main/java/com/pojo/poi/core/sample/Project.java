@@ -3,7 +3,7 @@ package com.pojo.poi.core.sample;
 import com.pojo.poi.core.excel.annotation.CellMeta;
 import com.pojo.poi.core.excel.annotation.ExcelMeta;
 import com.pojo.poi.core.excel.annotation.RowMeta;
-import com.pojo.poi.core.excel.model.ExcelData;
+import com.pojo.poi.core.excel.ExcelData;
 import lombok.Getter;
 import lombok.Setter;
 
