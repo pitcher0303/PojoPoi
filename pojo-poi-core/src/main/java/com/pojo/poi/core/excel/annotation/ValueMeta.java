@@ -16,5 +16,5 @@ public @interface ValueMeta {
 
     String value() default "";
 
-    ExcelCellStyle cellStyle() default @ExcelCellStyle;
+    ExcelCellStyle[] cellStyle() default {};
 }

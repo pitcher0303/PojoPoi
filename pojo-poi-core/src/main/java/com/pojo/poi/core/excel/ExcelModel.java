@@ -292,25 +292,20 @@ public class ExcelModel {
             cellStyle.setWrapText(true);
         }
 
-        public void prepareRegion(Sheet sheet, String[] xAxes, int[] yAxes, ExcelCellStyle cellStyle) {
+        public void prepareRegion(Sheet sheet, String[] xAxes, int[] yAxes, ExcelCellStyle[] cellStyle) {
             for (int yAxis : yAxes) {
                 Row row = row(sheet, yAxis);
                 for (String xAxis : xAxes) {
                     Cell cell = cell(row, xAxis);
-                    if (cellStyle != null) {
-                        //TODO: 대체하기
-//                        cellStyle.applyCellStyle(cell, this.cellStyleMap, this.fontMap);
-                    }
+                    applyCellStyle(cell, cellStyle);
                 }
             }
         }
 
-        public void applyCellStyle(Cell cell, ExcelCellStyle excelCellStyle) {
-            CellStyle cellStyle = cell.getCellStyle();
-            if(cellStyle == null) {
-                cellStyle = cell.getSheet().getWorkbook().createCellStyle();
-            }
-
+        //TODO: 스타일 적용 문제가 있음
+        public void applyCellStyle(Cell cell, ExcelCellStyle[] excelCellStyle) {
+            if(excelCellStyle.length < 1) return;
+            ExcelCellStyle.Creator.apply(cell, excelCellStyle);
         }
 
         //TODO: row style 은 고민해 보기

@@ -16,5 +16,5 @@ public @interface CellMeta {
 
     ValueMeta headerMeta() default @ValueMeta;
 
-    ExcelCellStyle cellStyle() default @ExcelCellStyle;
+    ExcelCellStyle[] cellStyle() default {};
 }

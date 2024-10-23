@@ -9,6 +9,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RgbColor {
     int red() default 0;
+
     int green() default 0;
+
     int blue() default 0;
 }

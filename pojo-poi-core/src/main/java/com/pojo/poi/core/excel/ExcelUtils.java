@@ -77,4 +77,12 @@ public class ExcelUtils {
     public static int width256(float excelCellWith) {
         return (int) Math.floor((excelCellWith * Units.DEFAULT_CHARACTER_WIDTH + 5) / Units.DEFAULT_CHARACTER_WIDTH * 256);
     }
+
+    public static boolean isApply(Object[] array) {
+        return array != null && array.length > 0;
+    }
+
+    public static boolean isApply(short[] array) {
+        return array != null && array.length > 0;
+    }
 }

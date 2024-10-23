@@ -16,7 +16,7 @@ public @interface GroupByMeta {
 
     int[] yAxis() default 1;
 
-    ExcelCellStyle cellStyle() default @ExcelCellStyle;
+    ExcelCellStyle[] cellStyle() default {};
 
     public enum DataType {AUTO_INCREMENT, CELL_DATA}
 }
