@@ -5,13 +5,15 @@ import com.pojo.poi.core.excel.annotation.ExcelMeta;
 import com.pojo.poi.core.excel.ExcelData;
 import com.pojo.poi.core.excel.style.ExcelCellStyle;
 import com.pojo.poi.core.excel.style.ExcelColor;
+import com.pojo.poi.core.excel.style.ExcelFont;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.IndexedColors;
 
-@Getter @Setter
+@Getter
+@Setter
 @ExcelMeta(startYAxis = 1)
 public class Category implements ExcelData {
     @CellMeta(

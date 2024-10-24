@@ -2,6 +2,7 @@ package com.pojo.poi.core.excel;
 
 import com.pojo.poi.core.excel.annotation.*;
 import com.pojo.poi.core.excel.style.ExcelCellStyle;
+import com.pojo.poi.core.excel.style.ExcelStyleManager;
 import lombok.Getter;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -21,12 +22,14 @@ public class ExcelModel {
     private final List<ExcelSheetModel> sheets = new ArrayList<>();
     private String fileName;
     private int sheetIndex = 1;
+    private final ExcelStyleManager excelStyleManager;
 
     public ExcelModel(XSSFWorkbook workbook, String originFileName, String fileName, int sheetIndex) {
         this.workbook = workbook;
         this.originFileName = originFileName;
         this.fileName = fileName;
         this.sheetIndex = sheetIndex;
+        this.excelStyleManager = new ExcelStyleManager(workbook);
     }
 
     public static ExcelModelBuilder builder(String fileName) {
@@ -50,7 +53,7 @@ public class ExcelModel {
                 .filter(excelSheetModel -> excelSheetModel.sheetName.equals(sheetName))
                 .findAny();
         sheetModel.ifPresentOrElse(excelSheetModel -> excelSheetModel.excelDatas.addAll(excelDatas), () -> {
-            ExcelSheetModel excelSheetModel = new ExcelSheetModel(this.workbook, sheetName, cellWidths);
+            ExcelSheetModel excelSheetModel = new ExcelSheetModel(this.workbook, sheetName, cellWidths, this.excelStyleManager);
             excelSheetModel.excelDatas.addAll(excelDatas);
             this.sheets.add(excelSheetModel);
         });
@@ -88,15 +91,17 @@ public class ExcelModel {
         private final Sheet sheet;
         private final String sheetName;
         private final List<ExcelData> excelDatas;
+        private final ExcelStyleManager excelStyleManager;
 
         public ExcelSheetModel(Workbook workbook,
                                String sheetName,
-                               float[] cellWidths) {
+                               float[] cellWidths,
+                               ExcelStyleManager excelStyleManager) {
             this.sheet = this.cresheet(workbook, sheetName);
             this.sheetName = sheetName;
             this.excelDatas = new ArrayList<>();
             this.setColumnWidths(cellWidths);
-
+            this.excelStyleManager = excelStyleManager;
         }
 
         private Sheet cresheet(Workbook workbook, String sheetName) {
@@ -217,7 +222,6 @@ public class ExcelModel {
             Arrays.sort(yAxes);
             cellMerging(sheet, fromToXAxes, fromToYAxes);
             writeToCell(sheet, xAxes[0], yAxes[0], cell(row(sheet, yAxes[0]), xAxes[0]).getStringCellValue());
-
         }
 
         //TODO: Gruop By 내에서 write 를 하게 되면 중복이 발생함
@@ -284,12 +288,6 @@ public class ExcelModel {
         public void writeToCell(Sheet sheet, String xAxis, int yAxis, String data) {
             Cell cell = cell(row(sheet, yAxis), xAxis);
             cell.setCellValue(data);
-            CellStyle cellStyle = cell.getCellStyle();
-            if(cellStyle == null) {
-                cellStyle = sheet.getWorkbook().createCellStyle();
-                cell.setCellStyle(cellStyle);
-            }
-            cellStyle.setWrapText(true);
         }
 
         public void prepareRegion(Sheet sheet, String[] xAxes, int[] yAxes, ExcelCellStyle[] cellStyle) {
@@ -302,10 +300,9 @@ public class ExcelModel {
             }
         }
 
-        //TODO: 스타일 적용 문제가 있음
         public void applyCellStyle(Cell cell, ExcelCellStyle[] excelCellStyle) {
             if(excelCellStyle.length < 1) return;
-            ExcelCellStyle.Creator.apply(cell, excelCellStyle);
+            this.excelStyleManager.applyCellStyle(cell, excelCellStyle);
         }
 
         //TODO: row style 은 고민해 보기

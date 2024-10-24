@@ -20,16 +20,16 @@ import java.util.List;
 @ExcelMeta(startYAxis = 1)
 public class Project implements ExcelData {
     @CellMeta(
-            xAxis = "A",
+            xAxis = "A"
+    )
+    private String projectType;
+    @CellMeta(
+            xAxis = "B",
             cellStyle = @ExcelCellStyle(
                     borderTop = BorderStyle.DASH_DOT,
                     borderRight = BorderStyle.DASH_DOT,
                     borderBottom = BorderStyle.DASH_DOT,
                     borderLeft = BorderStyle.DASH_DOT)
-    )
-    private String projectType;
-    @CellMeta(
-            xAxis = "B"
     )
     private String projectName;
     @CellMeta(
