@@ -1,5 +1,7 @@
 package com.pojo.poi.core.excel.annotation;
 
+import com.pojo.poi.core.excel.style.ExcelRowStyle;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -23,6 +25,8 @@ public @interface RowMeta {
     public ValueMeta[] headerMetas() default {};
 
     public GroupByMeta[] groupBys() default {};
+
+    public ExcelRowStyle[] rowStyle() default {};
 
     public enum RowType {RANGE, Y_RANDOM, X_RANDOM}
 }

@@ -1,3 +1,10 @@
 spring:
   application:
-    name: pojo-poi-test
+    name: pojo-poi-core
+
+springdoc:
+  api-docs:
+    enabled: on
+  swagger-ui:
+    enabled: on
+    path: /

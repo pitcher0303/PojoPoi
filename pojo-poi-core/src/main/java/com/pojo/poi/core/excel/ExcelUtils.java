@@ -56,7 +56,7 @@ public class ExcelUtils {
                 .collect(Collectors.toList());
     }
 
-    public static List<Integer> yAxisFromToxAxis(int... yAxis) {
+    public static List<Integer> yAxisFromToyAxis(int... yAxis) {
         List<Integer> yAxisList = yAxisToRownums(yAxis);
         return AxisFromToNums(yAxisList)
                 .stream()
@@ -84,5 +84,9 @@ public class ExcelUtils {
 
     public static boolean isApply(short[] array) {
         return array != null && array.length > 0;
+    }
+
+    public static String toStringData(Object data) {
+        return data == null ? "" : data.toString();
     }
 }

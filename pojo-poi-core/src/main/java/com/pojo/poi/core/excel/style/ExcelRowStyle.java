@@ -11,17 +11,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 기본적인 셀 스타일
+ * Row 테두리만 현재 허용.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ExcelCellStyle {
-    boolean wrapText() default false;
-
-    HorizontalAlignment[] horizontalAlignment() default {};
-
-    VerticalAlignment[] verticalAlignment() default {VerticalAlignment.CENTER};
-
+public @interface ExcelRowStyle {
     BorderStyle[] borderTop() default {};
 
     BorderStyle[] borderRight() default {};
@@ -29,12 +23,4 @@ public @interface ExcelCellStyle {
     BorderStyle[] borderBottom() default {};
 
     BorderStyle[] borderLeft() default {};
-
-    FillPatternType[] fillPattern() default {};
-
-    ExcelColor[] foregroundColor() default {};
-
-    ExcelColor[] backgroundColor() default {};
-
-    ExcelFont[] font() default {};
 }

@@ -1,10 +1,10 @@
-package com.pojo.poi.core;
+package com.pojo.poi.test;
 
 import com.pojo.poi.core.excel.ExcelMaster;
 import com.pojo.poi.core.excel.ExcelModel;
-import com.pojo.poi.core.sample.Category;
-import com.pojo.poi.core.sample.Project;
-import com.pojo.poi.core.sample.Report;
+import com.pojo.poi.test.sample.Category;
+import com.pojo.poi.test.sample.Project;
+import com.pojo.poi.test.sample.Report;
 import lombok.SneakyThrows;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -31,6 +30,7 @@ public class ExcelController {
         ExcelModel model = ExcelModel.builder("테스트")
                 .build()
                 .addExcelDatas("보고서", List.of(report), new float[]{12.5f, 31.13f, 6.88f, 12f, 16.25f, 68.75f, 68.75f, 71.75f})
+//                .addExcelDatas("보고서", List.of(report))
                 .writeAll()
                 .end();
         InputStreamResource resource = new InputStreamResource(model.getExcelStream());
@@ -46,7 +46,7 @@ public class ExcelController {
 
     @SneakyThrows
     @RequestMapping(value = "/upload/excel", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Report> uploadExcel(@RequestPart(value = "file") MultipartFile multipartFile) throws IOException {
+    public ResponseEntity<Report> uploadExcel(@RequestPart(value = "file") MultipartFile multipartFile) {
         XSSFWorkbook workbook = new XSSFWorkbook(OPCPackage.open(multipartFile.getInputStream()));
         Report report = ExcelMaster.readSheet(Report.class, workbook.getSheetAt(0));
         return ResponseEntity.ok(report);
@@ -233,6 +233,7 @@ public class ExcelController {
 
         return project;
     }
+
     public Project sampleProject2() {
         Project project = new Project();
         project.setProjectType("SI");

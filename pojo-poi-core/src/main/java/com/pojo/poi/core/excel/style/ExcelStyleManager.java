@@ -4,24 +4,28 @@ import com.pojo.poi.core.excel.ExcelUtils;
 import org.apache.poi.ss.usermodel.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public class ExcelStyleManager {
-    private final Map<Integer, CellStyle> styles;
+    private final Map<Integer, CellStyle> cellStyleCache;
     private final Map<Integer, Font> fonts;
+    private final Map<String, CellStyle> rowStylesCache;
     private final Workbook workbook;
 
     public ExcelStyleManager(Workbook workbook) {
-        this.styles = new HashMap<>();
+        this.cellStyleCache = new HashMap<>();
         this.fonts = new HashMap<>();
+        this.rowStylesCache = new HashMap<>();
         this.workbook = workbook;
     }
 
     public CellStyle getCellStyle(ExcelCellStyle excelCellStyle) {
-        CellStyle cellStyle = this.styles.get(excelCellStyle.hashCode());
+        CellStyle cellStyle = this.cellStyleCache.get(excelCellStyle.hashCode());
         if (cellStyle == null) {
             cellStyle = this.workbook.createCellStyle();
-            this.styles.put(excelCellStyle.hashCode(), cellStyle);
+            this.cellStyleCache.put(excelCellStyle.hashCode(), cellStyle);
         }
         return cellStyle;
     }
@@ -113,5 +117,80 @@ public class ExcelStyleManager {
                 && !borderTopApply && !borderRightApply && !borderBottomApply
                 && !borderLeftApply && !fillPatternApply && !foregroundColorApply
                 && !backgroundColorApply && !fontApply;
+    }
+
+    public void applyRowStyle(List<Row> fromToRows, ExcelRowStyle[] excelRowStyles) {
+        if (excelRowStyles.length < 1) return;
+        ExcelRowStyle excelRowStyle = excelRowStyles[0];
+        boolean isBorderLeft = ExcelUtils.isApply(excelRowStyle.borderLeft());
+        boolean isBorderRight = ExcelUtils.isApply(excelRowStyle.borderRight());
+        boolean isBorderTop = ExcelUtils.isApply(excelRowStyle.borderTop());
+        boolean isBorderBottom = ExcelUtils.isApply(excelRowStyle.borderBottom());
+        for (int i = 0; i < fromToRows.size(); i++) {
+            Row row = fromToRows.get(i);
+            if (isBorderLeft) {
+                Cell cell = row.getCell(row.getFirstCellNum());
+                CellStyle cellStyle = getRowCellStyle(cell, RowBorders.LEFT, excelRowStyle.borderLeft()[0]);
+                cell.setCellStyle(cellStyle);
+            }
+            if (isBorderRight) {
+                Cell cell = row.getCell(row.getLastCellNum() - 1);
+                CellStyle cellStyle = getRowCellStyle(cell, RowBorders.RIGHT, excelRowStyle.borderRight()[0]);
+                cell.setCellStyle(cellStyle);
+            }
+            if (i == 0) {
+                if (isBorderTop) {
+                    for (int cellNum = row.getFirstCellNum(); cellNum < row.getLastCellNum(); cellNum++) {
+                        Cell cell = row.getCell(cellNum);
+                        CellStyle cellStyle = getRowCellStyle(cell, RowBorders.TOP, excelRowStyle.borderTop()[0]);
+                        cell.setCellStyle(cellStyle);
+                    }
+                }
+            } else if (i == fromToRows.size() - 1) {
+                if (isBorderBottom) {
+                    for (int cellNum = row.getFirstCellNum(); cellNum < row.getLastCellNum(); cellNum++) {
+                        Cell cell = row.getCell(cellNum);
+                        CellStyle cellStyle = getRowCellStyle(cell, RowBorders.BOTTOM, excelRowStyle.borderBottom()[0]);
+                        cell.setCellStyle(cellStyle);
+                    }
+                }
+            }
+        }
+    }
+
+    public CellStyle getRowCellStyle(Cell cell, RowBorders type, BorderStyle borderStyle) {
+        CellStyle cellStyle = cell.getCellStyle();
+        String key = type.generateRowStyleId(cellStyle.hashCode());
+        if (!rowStylesCache.containsKey(key)) {
+            CellStyle temp = cell.getSheet().getWorkbook().createCellStyle();
+            temp.cloneStyleFrom(cellStyle);
+            switch (type) {
+                case TOP -> temp.setBorderTop(borderStyle);
+                case RIGHT -> temp.setBorderRight(borderStyle);
+                case BOTTOM -> temp.setBorderBottom(borderStyle);
+                case LEFT -> temp.setBorderLeft(borderStyle);
+            }
+            String newKey = type.generateRowStyleId(temp.hashCode());
+            rowStylesCache.put(newKey, temp);
+            cellStyle = temp;
+        }
+        return cellStyle;
+    }
+
+    public enum RowBorders {
+        TOP((hascode) -> "TOP" + hascode),
+        RIGHT((hascode) -> "RIGHT" + hascode),
+        BOTTOM((hascode) -> "BOTTOM" + hascode),
+        LEFT((hascode) -> "LEFT" + hascode);
+
+        private final Function<Integer, String> idGenerator;
+
+        RowBorders(Function<Integer, String> idGenerator) {
+            this.idGenerator = idGenerator;
+        }
+
+        public String generateRowStyleId(Integer hascode) {
+            return this.idGenerator.apply(hascode);
+        }
     }
 }
