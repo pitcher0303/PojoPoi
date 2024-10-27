@@ -1,7 +1,7 @@
 package com.pojo.poi.test;
 
-import com.pojo.poi.core.excel.ExcelMaster;
-import com.pojo.poi.core.excel.ExcelModel;
+import com.pojo.poi.core.excel.ExcelWriter;
+import com.pojo.poi.core.excel.ExcelReader;
 import com.pojo.poi.test.sample.Category;
 import com.pojo.poi.test.sample.Project;
 import com.pojo.poi.test.sample.Report;
@@ -27,15 +27,14 @@ public class ExcelController {
     @RequestMapping(value = "/download/excel", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<InputStreamResource> downloadExcel() {
         Report report = sampleReport();
-        ExcelModel model = ExcelModel.builder("테스트")
+        ExcelWriter excelWriter = ExcelWriter.builder("테스트")
                 .build()
                 .addExcelDatas("보고서", List.of(report), new float[]{12.5f, 31.13f, 6.88f, 12f, 16.25f, 68.75f, 68.75f, 71.75f})
-//                .addExcelDatas("보고서", List.of(report))
-                .writeAll()
-                .end();
-        InputStreamResource resource = new InputStreamResource(model.getExcelStream());
+                .writeAll();
+
+        InputStreamResource resource = new InputStreamResource(excelWriter.getExcelStream());
         HttpHeaders headers = new HttpHeaders();
-        String encodedFileName = URLEncoder.encode(model.getFileName(), StandardCharsets.UTF_8).replace("+", "%20");
+        String encodedFileName = URLEncoder.encode(excelWriter.getFileName(), StandardCharsets.UTF_8).replace("+", "%20");
         headers.setContentDispositionFormData("attachment", encodedFileName);
 
         return ResponseEntity.ok()
@@ -48,8 +47,31 @@ public class ExcelController {
     @RequestMapping(value = "/upload/excel", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Report> uploadExcel(@RequestPart(value = "file") MultipartFile multipartFile) {
         XSSFWorkbook workbook = new XSSFWorkbook(OPCPackage.open(multipartFile.getInputStream()));
-        Report report = ExcelMaster.readSheet(Report.class, workbook.getSheetAt(0));
+        Report report = ExcelReader.readSheet(Report.class, workbook.getSheetAt(0));
         return ResponseEntity.ok(report);
+    }
+
+    @SneakyThrows
+    @RequestMapping(value = "/copy/excel", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<InputStreamResource> copyExcel(@RequestPart(value = "file") MultipartFile multipartFile) {
+        XSSFWorkbook workbook = new XSSFWorkbook(OPCPackage.open(multipartFile.getInputStream()));
+        Report report = ExcelReader.readSheet(Report.class, workbook.getSheetAt(0));
+
+        String fileName = multipartFile.getOriginalFilename();
+        ExcelWriter excelWriter = ExcelWriter.builder(fileName == null ? multipartFile.getName() : fileName)
+                .build()
+                .addExcelDatas(workbook.getSheetName(0), List.of(report), new float[]{12.5f, 31.13f, 6.88f, 12f, 16.25f, 68.75f, 68.75f, 71.75f})
+                .writeAll();
+
+        InputStreamResource resource = new InputStreamResource(excelWriter.getExcelStream());
+        HttpHeaders headers = new HttpHeaders();
+        String encodedFileName = URLEncoder.encode(excelWriter.getFileName(), StandardCharsets.UTF_8).replace("+", "%20");
+        headers.setContentDispositionFormData("attachment", encodedFileName);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 
     public Report sampleReport() {

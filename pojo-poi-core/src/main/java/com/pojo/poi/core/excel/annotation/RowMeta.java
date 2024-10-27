@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RowMeta {
-    public RowType rowType() default RowType.RANGE;
+    public RowType rowType() default RowType.Y_RANDOM;
 
     String[] xAxis() default "A";
 
@@ -28,5 +28,10 @@ public @interface RowMeta {
 
     public ExcelRowStyle[] rowStyle() default {};
 
-    public enum RowType {RANGE, Y_RANDOM, X_RANDOM}
+    public enum RowType {
+        Y_RANDOM,
+        //TODO : X_RANDOM, RANGE 추가 예정 사항.
+//        X_RANDOM,
+//        RANGE,
+    }
 }

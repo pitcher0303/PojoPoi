@@ -1,10 +1,14 @@
 package com.pojo.poi.core.excel;
 
+import com.pojo.poi.core.excel.annotation.CellMeta;
+import com.pojo.poi.core.excel.annotation.RowMeta;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.util.Units;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -68,6 +72,10 @@ public class ExcelUtils {
         return cellnum.size() > 1 || rownum.size() > 1;
     }
 
+    public static boolean isMergedCell(String[] xAxes, int[] yAxes) {
+        return xAxes.length > 1 || yAxes.length > 1;
+    }
+
     /**
      * Excel Cell Width 값을 Poi Width 값으로 변환
      *
@@ -88,5 +96,34 @@ public class ExcelUtils {
 
     public static String toStringData(Object data) {
         return data == null ? "" : data.toString();
+    }
+
+    public static <T> Map<String, Field> excelTargetFields(Class<T> to) {
+        Map<String, Field> targets = new HashMap<>();
+        for (Field field : to.getDeclaredFields()) {
+            field.setAccessible(true);
+            if (field.isAnnotationPresent(CellMeta.class) || field.isAnnotationPresent(RowMeta.class)) {
+                targets.put(field.getName(), field);
+            }
+        }
+        return targets;
+    }
+
+    public static Row row(final Sheet sheet, int yAxis) {
+        int rowNum = ExcelUtils.yAxisToRownum(yAxis);
+        Row row = sheet.getRow(rowNum);
+        if (row == null) row = sheet.createRow(rowNum);
+        return row;
+    }
+
+    public static Cell cell(final Row row, String xAxis) {
+        int cellNum = ExcelUtils.xAxisToCellNum(xAxis);
+        Cell cell = row.getCell(cellNum);
+        if (cell == null) cell = row.createCell(cellNum);
+        return cell;
+    }
+
+    public static boolean isGroupBy(RowMeta rowMeta) {
+        return rowMeta.groupBys().length > 0;
     }
 }
