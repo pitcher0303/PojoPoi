@@ -59,15 +59,15 @@ public ResponseEntity<InputStreamResource> downloadExcel() {
 
 1. 엑셀 형식을 정합니다.
 
-<img alt="Sample1-01" height="200" width="200" src="https://github.com/user-attachments/assets/ae9ca41e-9817-4f17-8e24-e9798b6abfa4" />
+![Sample1-01](https://github.com/user-attachments/assets/ae9ca41e-9817-4f17-8e24-e9798b6abfa4)
 
 2. 엑셀의 sheet 내 구역을 Java Object 에 맞춰 디자인 합니다.
 
-<img alt="Sample1-02" height="200" width="200" src="https://github.com/user-attachments/assets/fce69e2c-0c3a-412b-a0fe-5bc6fd106e13" />
+![Sample1-02](https://github.com/user-attachments/assets/fce69e2c-0c3a-412b-a0fe-5bc6fd106e13)
 
-<img alt="Sample1-03" height="200" width="200" src="https://github.com/user-attachments/assets/2b3fb90a-26bc-4a25-a7b5-da3a65309637" />
+![Sample1-03](https://github.com/user-attachments/assets/2b3fb90a-26bc-4a25-a7b5-da3a65309637)
 
-<img alt="Sample1-04" height="200" width="200" src="https://github.com/user-attachments/assets/2238afc5-9af4-456b-81b2-65638fdc575b" />
+![Sample1-04](https://github.com/user-attachments/assets/2238afc5-9af4-456b-81b2-65638fdc575b)
 
 3.  Read, Write 로 Excel 을 읽거나, 쓸수 있습니다.
 
