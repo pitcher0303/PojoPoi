@@ -93,9 +93,9 @@ public class ExcelWriter {
         private final ExcelStyleManager excelStyleManager;
 
         public ExcelSheetWriter(Workbook workbook,
-                               String sheetName,
-                               float[] cellWidths,
-                               ExcelStyleManager excelStyleManager) {
+                                String sheetName,
+                                float[] cellWidths,
+                                ExcelStyleManager excelStyleManager) {
             this.sheet = this.cresheet(workbook, sheetName);
             this.sheetName = sheetName;
             this.excelDatas = new ArrayList<>();

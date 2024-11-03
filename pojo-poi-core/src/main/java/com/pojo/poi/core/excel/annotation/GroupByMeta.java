@@ -18,5 +18,5 @@ public @interface GroupByMeta {
 
     ExcelCellStyle[] cellStyle() default {};
 
-    public enum DataType {AUTO_INCREMENT, CELL_DATA}
+    enum DataType {AUTO_INCREMENT, CELL_DATA}
 }

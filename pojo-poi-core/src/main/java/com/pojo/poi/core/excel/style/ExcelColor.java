@@ -18,12 +18,12 @@ public @interface ExcelColor {
 
     RgbColor rgbColor() default @RgbColor();
 
-    public enum Type {
+    enum Type {
         indexed,
         rgb
     }
 
-    public static class Applier {
+    class Applier {
         public static void apply(CellStyle cellStyle, ExcelColor excelColor) {
             if (excelColor == null) return;
             switch (excelColor.type()) {

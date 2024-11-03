@@ -8,9 +8,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExcelMeta {
-    public int startYAxis() default 1;
+    int startYAxis() default 1;
 
-    public int endYAxis() default 1;
+    int endYAxis() default 1;
 
-    public ValueMeta[] headerMetas() default {};
+    ValueMeta[] headerMetas() default {};
 }

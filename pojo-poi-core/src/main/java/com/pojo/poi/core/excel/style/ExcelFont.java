@@ -18,7 +18,7 @@ public @interface ExcelFont {
 
     IndexedColors[] color() default {IndexedColors.BLACK};
 
-    public static class Applier {
+    class Applier {
         public static void apply(Font font, ExcelFont excelFont) {
             if (excelFont == null) return;
             if (excelFont.bold()) font.setBold(true);

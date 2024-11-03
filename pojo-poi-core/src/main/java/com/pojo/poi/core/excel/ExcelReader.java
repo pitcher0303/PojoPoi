@@ -31,6 +31,7 @@ public class ExcelReader {
 
     public static <T extends ExcelData> void readToInstance(T toInstance, Sheet sheet, final int startYAxis, final int endYAxis) {
         Map<String, Field> targets = ExcelUtils.excelTargetFields(toInstance.getClass());
+        //TODO: Reference Read 기능 추가 해야함 Writer의 Reference Read 기능 살펴 볼것.
         targets.forEach((fieldName, field) -> {
             if (field.isAnnotationPresent(CellMeta.class)) {
                 String value = cellMetaData(sheet, field.getAnnotation(CellMeta.class), startYAxis);
@@ -45,7 +46,7 @@ public class ExcelReader {
                 List<ExcelData> value = null;
                 switch (rowMeta.rowType()) {
 //                    case RANGE, X_RANDOM -> {
-                        //지원 예정
+                    //지원 예정
 //                    }
                     case Y_RANDOM -> {
                         if (ExcelUtils.isGroupBy(rowMeta)) {
