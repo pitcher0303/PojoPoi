@@ -17,4 +17,6 @@ public @interface CellMeta {
     ValueMeta headerMeta() default @ValueMeta;
 
     ExcelCellStyle[] cellStyle() default {};
+
+    MetaOrder metaOrder() default @MetaOrder;
 }

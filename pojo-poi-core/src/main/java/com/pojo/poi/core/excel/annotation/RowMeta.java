@@ -10,27 +10,29 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RowMeta {
-    public RowType rowType() default RowType.Y_RANDOM;
+    RowType rowType() default RowType.Y_RANDOM;
 
     String[] xAxis() default "A";
 
     int[] yAxis() default 1;
 
-    public int startYAxis() default 1;
+    int startYAxis() default 1;
 
-    public int endYAxis() default 1;
+    int endYAxis() default 1;
 
-    public Class<?> target();
+    Class<?> target();
 
-    public ValueMeta[] headerMetas() default {};
+    ValueMeta[] headerMetas() default {};
 
-    public GroupByMeta[] groupBys() default {};
+    GroupByMeta[] groupBys() default {};
 
-    public ExcelRowStyle[] rowStyle() default {};
+    ExcelRowStyle[] rowStyle() default {};
 
-    public enum RowType {
+    MetaOrder metaOrder() default @MetaOrder;
+
+    enum RowType {
         Y_RANDOM,
-        //TODO : X_RANDOM, RANGE 추가 예정 사항.
+        //TODO : X_RANDOM, RANGE 추가 예정.
 //        X_RANDOM,
 //        RANGE,
     }

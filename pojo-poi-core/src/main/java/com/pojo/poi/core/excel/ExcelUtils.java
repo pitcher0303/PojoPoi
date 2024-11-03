@@ -1,6 +1,7 @@
 package com.pojo.poi.core.excel;
 
 import com.pojo.poi.core.excel.annotation.CellMeta;
+import com.pojo.poi.core.excel.annotation.MetaOrder;
 import com.pojo.poi.core.excel.annotation.RowMeta;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -27,17 +28,21 @@ public class ExcelUtils {
                 .collect(Collectors.toList());
     }
 
-    public static Integer yAxisToRownum(int yAxis) {return yAxis - 1;}
+    public static Integer yAxisToRownum(int yAxis) {
+        return yAxis - 1;
+    }
 
     public static Integer sumYAxis(int... yAxis) {
         int sum = 0;
-        for(int y : yAxis) {
+        for (int y : yAxis) {
             sum += y;
         }
         return yAxis.length > 1 ? sum - yAxis.length + 1 : sum;
     }
 
-    public static Integer rownumToYAxis(int rownum) {return rownum + 1;}
+    public static Integer rownumToYAxis(int rownum) {
+        return rownum + 1;
+    }
 
     public static List<Integer> yAxisToRownums(int... yAxis) {
         return IntStream.of(yAxis)
@@ -46,7 +51,7 @@ public class ExcelUtils {
     }
 
     public static List<Integer> AxisFromToNums(List<Integer> axis) {
-        if(axis.size() == 1) return axis;
+        if (axis.size() == 1) return axis;
         axis.sort(Integer::compareTo);
         return IntStream.range(axis.getFirst(), axis.getLast() + 1)
                 .collect(ArrayList::new, List::add, List::addAll);
@@ -107,6 +112,12 @@ public class ExcelUtils {
             }
         }
         return targets;
+    }
+
+    public static MetaOrder metaOrder(Field field) {
+        CellMeta cellMeta = field.getAnnotation(CellMeta.class);
+        RowMeta rowMeta = field.getAnnotation(RowMeta.class);
+        return cellMeta != null ? cellMeta.metaOrder() : rowMeta != null ? rowMeta.metaOrder() : null;
     }
 
     public static Row row(final Sheet sheet, int yAxis) {

@@ -4,8 +4,10 @@ import com.pojo.poi.core.excel.ExcelData;
 import com.pojo.poi.core.excel.annotation.CellMeta;
 import com.pojo.poi.core.excel.annotation.ExcelMeta;
 import com.pojo.poi.core.excel.annotation.RowMeta;
+import com.pojo.poi.core.excel.style.ExcelRowStyle;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.poi.ss.usermodel.BorderStyle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +35,10 @@ public class Project implements ExcelData {
 
     @RowMeta(
             rowType = RowMeta.RowType.Y_RANDOM,
-            target = Category.class
+            target = Category.class,
+            rowStyle = @ExcelRowStyle(
+                    borderBottom = BorderStyle.MEDIUM
+            )
     )
     List<Category> categories = new ArrayList<>();
 

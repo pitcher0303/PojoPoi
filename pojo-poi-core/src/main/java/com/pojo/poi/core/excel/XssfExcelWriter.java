@@ -19,75 +19,120 @@ public class XssfExcelWriter {
         Map<String, Field> targetFields = ExcelUtils.excelTargetFields(excelData.getClass());
 
         ExcelMeta excelMeta = excelData.getClass().getAnnotation(ExcelMeta.class);
+        final int excelMetaStartYAxis = ExcelUtils.sumYAxis(startYAxis, excelMeta.startYAxis());
         ValueMeta[] headerMetas = excelMeta.headerMetas();
         for (ValueMeta headerMeta : headerMetas) {
-            writeValueMeta(sheet, excelStyleManager, headerMeta, ExcelUtils.sumYAxis(excelMeta.startYAxis(), startYAxis));
+            writeValueMeta(sheet, excelStyleManager, headerMeta, excelMetaStartYAxis);
         }
+        Map<Integer, ExcelDataMeta> excelMetaDataMap = new HashMap<>();
         targetFields.values().stream()
-                .filter(field -> field.isAnnotationPresent(CellMeta.class))
-                .forEach(field -> {
-                    CellMeta cellMeta = field.getAnnotation(CellMeta.class);
-                    Object data = null;
-                    try {
-                        data = field.get(excelData);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                .filter(field -> field.isAnnotationPresent(CellMeta.class) || field.isAnnotationPresent(RowMeta.class))
+                .sorted((f1, f2) -> {
+                    MetaOrder metaOrderF1 = ExcelUtils.metaOrder(f1);
+                    MetaOrder metaOrderF2 = ExcelUtils.metaOrder(f2);
+
+                    return Integer.compare(Objects.requireNonNull(metaOrderF1).value(), Objects.requireNonNull(metaOrderF2).value());
+                })
+                .map(field -> {
+                    ExcelDataMeta excelDataMeta = new ExcelDataMeta(field);
+                    excelMetaDataMap.put(excelDataMeta.getMetaOrder().value(), excelDataMeta);
+                    return excelDataMeta;
+                })
+                .forEach(excelDataMeta -> {
+                    //TODO: XAxis 에 대한 값도 추가해 줘야함 X_RANDOM 기능 만들때 고려하자.
+                    int yAxis = findReferenceYAxis(excelMetaDataMap, excelMetaStartYAxis, excelDataMeta);
+                    if (excelDataMeta.isCellMeta()) {
+                        writeCellMeta(excelDataMeta, sheet, excelStyleManager, excelData, yAxis);
                     }
-                    writeCellData(sheet, excelStyleManager, cellMeta, startYAxis, data);
+                    else if (excelDataMeta.isRowMeta()) {
+                        writeRowMeta(excelDataMeta, sheet, excelStyleManager, excelData, yAxis);
+                    }
                 });
-        targetFields.values().stream()
-                .filter(field -> field.isAnnotationPresent(RowMeta.class))
-                .forEach(field -> {
-                    RowMeta rowMeta = field.getAnnotation(RowMeta.class);
-                    ValueMeta[] rowHeaderMetas = rowMeta.headerMetas();
-                    for (ValueMeta rowHeaderMeta : rowHeaderMetas) {
-                        writeValueMeta(sheet, excelStyleManager, rowHeaderMeta, startYAxis);
-                    }
-                    try {
-                        if (!Collection.class.isAssignableFrom(field.getType())) {
-                            throw new RuntimeException(String.format("필드 %s 는 컬렉션이 아닙니다., RowMeta 는 컬렉션에 적용 가능합니다.", field.getName()));
-                        }
-                        Collection<ExcelData> innerExcelDatas = (Collection<ExcelData>) field.get(excelData);
-                        if (innerExcelDatas == null) {
-                            System.out.printf("filed data is null, filed name: %s", field.getName());
-                            return;
-                        }
-                        //Row Meta 데이터를 먼저 쓰고 난 후 머지를 한다.
-                        Iterator<ExcelData> iterator = innerExcelDatas.iterator();
-                        int lastYAxis = ExcelUtils.rownumToYAxis(sheet.getLastRowNum());
-                        for (
-                                int i = 0, firstYAxis = ExcelUtils.sumYAxis(startYAxis, rowMeta.startYAxis());
-                                iterator.hasNext();
-                                i++, firstYAxis = lastYAxis + 1
-                        ) {
-                            writeExcelData(sheet, excelStyleManager, iterator.next(), firstYAxis);
-                            //merge 할 마지막 row
-                            lastYAxis = ExcelUtils.rownumToYAxis(sheet.getLastRowNum());
-                            if (ExcelUtils.isGroupBy(rowMeta)) {
-                                if (firstYAxis == lastYAxis) continue;
-                                GroupByMeta[] groupByMetas = rowMeta.groupBys();
-                                for (GroupByMeta groupByMeta : groupByMetas) {
-                                    int[] yAxes = {
-                                            ExcelUtils.sumYAxis(firstYAxis, groupByMeta.yAxis()[0]),
-                                            lastYAxis
-                                    };
-                                    switch (groupByMeta.dataType()) {
-                                        case AUTO_INCREMENT -> {
-                                            writeGroupBy(sheet, excelStyleManager, groupByMeta, groupByMeta.xAxis(), yAxes, i + 1);
-                                        }
-                                        case CELL_DATA -> {
-                                            writeGroupBy(sheet, excelStyleManager, groupByMeta, groupByMeta.xAxis(), yAxes);
-                                        }
-                                    }
-                                }
+    }
+
+    private static int findReferenceYAxis(Map<Integer, ExcelDataMeta> excelMetaDataMap, int currentYAxis,  ExcelDataMeta excelDataMeta) {
+        switch (excelDataMeta.getMetaOrder().type()) {
+            case NONE -> {
+                return currentYAxis;
+            }
+            case Y_REFERENCES -> {
+                ExcelDataMeta reference = excelMetaDataMap.get(excelDataMeta.getMetaOrder().referenceMetaOrder());
+                //마지막 라인 + 1
+                return reference != null ? reference.getEndYAxis() + 1 : currentYAxis;
+            }
+        }
+        return currentYAxis;
+    }
+
+    private static void writeCellMeta(final ExcelDataMeta excelDataMeta, final Sheet sheet, final ExcelStyleManager excelStyleManager, ExcelData excelData, final int startYAxis) {
+        CellMeta cellMeta = excelDataMeta.getField().getAnnotation(CellMeta.class);
+        Object data = null;
+        try {
+            data = excelDataMeta.getField().get(excelData);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        writeCellData(sheet, excelStyleManager, cellMeta, startYAxis, data);
+    }
+
+    private static void writeRowMeta(final ExcelDataMeta excelDataMeta, final Sheet sheet, final ExcelStyleManager excelStyleManager, ExcelData excelData, final int startYAxis) {
+        RowMeta rowMeta = excelDataMeta.getField().getAnnotation(RowMeta.class);
+        int rowMetaStartYAxis = ExcelUtils.sumYAxis(startYAxis, rowMeta.startYAxis());
+        excelDataMeta.setStartYAxis(rowMetaStartYAxis);
+        ValueMeta[] rowHeaderMetas = rowMeta.headerMetas();
+        int maxValueMetaYAxis = 0;
+        for (ValueMeta rowHeaderMeta : rowHeaderMetas) {
+            writeValueMeta(sheet, excelStyleManager, rowHeaderMeta, rowMetaStartYAxis);
+            int[] rowHeaderMetaYAxis = rowHeaderMeta.yAxis();
+            Arrays.sort(rowHeaderMetaYAxis);
+            maxValueMetaYAxis = Math.max(maxValueMetaYAxis, rowHeaderMetaYAxis[rowHeaderMetaYAxis.length - 1]);
+        }
+        rowMetaStartYAxis = ExcelUtils.sumYAxis(rowMetaStartYAxis, maxValueMetaYAxis + 1);
+        try {
+            if (!Collection.class.isAssignableFrom(excelDataMeta.getField().getType())) {
+                throw new RuntimeException(String.format("필드 %s 는 컬렉션이 아닙니다., RowMeta 는 컬렉션에 적용 가능합니다.", excelDataMeta.getField().getName()));
+            }
+            Collection<ExcelData> innerExcelDatas = (Collection<ExcelData>) excelDataMeta.getField().get(excelData);
+            if (innerExcelDatas == null) {
+                System.out.printf("filed data is null, filed name: %s", excelDataMeta.getField().getName());
+                return;
+            }
+            //Row Meta 데이터를 먼저 쓰고 난 후 머지를 한다.
+            Iterator<ExcelData> iterator = innerExcelDatas.iterator();
+            int lastYAxis = ExcelUtils.rownumToYAxis(sheet.getLastRowNum());
+            for (
+                    int i = 0, firstYAxis = rowMetaStartYAxis;
+                    iterator.hasNext();
+                    i++, firstYAxis = lastYAxis + 1
+            ) {
+                writeExcelData(sheet, excelStyleManager, iterator.next(), firstYAxis);
+                //merge 할 마지막 row
+                lastYAxis = ExcelUtils.rownumToYAxis(sheet.getLastRowNum());
+                if (ExcelUtils.isGroupBy(rowMeta)) {
+                    if (firstYAxis == lastYAxis) continue;
+                    GroupByMeta[] groupByMetas = rowMeta.groupBys();
+                    for (GroupByMeta groupByMeta : groupByMetas) {
+                        int[] yAxes = {
+                                ExcelUtils.sumYAxis(firstYAxis, groupByMeta.yAxis()[0]),
+                                lastYAxis
+                        };
+                        switch (groupByMeta.dataType()) {
+                            case AUTO_INCREMENT -> {
+                                writeGroupBy(sheet, excelStyleManager, groupByMeta, groupByMeta.xAxis(), yAxes, i + 1);
                             }
-                            //Row Style
-                            applyRowStyle(sheet, excelStyleManager, firstYAxis, lastYAxis, rowMeta.rowStyle());
+                            case CELL_DATA -> {
+                                writeGroupBy(sheet, excelStyleManager, groupByMeta, groupByMeta.xAxis(), yAxes);
+                            }
                         }
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
                     }
-                });
+                }
+            }
+            //Row Style
+            applyRowStyle(sheet, excelStyleManager, rowMetaStartYAxis, lastYAxis, rowMeta.rowStyle());
+            excelDataMeta.setEndYAxis(lastYAxis);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     //TODO: Gruop By 내에서 write 를 하게 되면 중복이 발생함
@@ -172,6 +217,8 @@ public class XssfExcelWriter {
 
     //TODO: 데이터는 아직 String 만 지원, 여러 데이터 형을 지원할 필요가 있을까?
     public static void writeToCell(final Sheet sheet, String xAxis, int yAxis, String data) {
+//        System.out.printf("%s:%s", xAxis + yAxis, data);
+//        System.out.println();
         Cell cell = ExcelUtils.cell(ExcelUtils.row(sheet, yAxis), xAxis);
         cell.setCellValue(data);
     }

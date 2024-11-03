@@ -141,12 +141,14 @@ public class ExcelStyleManager {
             if (i == 0) {
                 if (isBorderTop) {
                     for (int cellNum = row.getFirstCellNum(); cellNum < row.getLastCellNum(); cellNum++) {
-                        Cell cell = row.getCell(cellNum);
+//                        Cell cell = row.getCell(cellNum);
+                        Cell cell = ExcelUtils.cell(row, ExcelUtils.cellNumToXAxis(cellNum));
                         CellStyle cellStyle = getRowCellStyle(cell, RowBorders.TOP, excelRowStyle.borderTop()[0]);
                         cell.setCellStyle(cellStyle);
                     }
                 }
-            } else if (i == fromToRows.size() - 1) {
+            }
+            if (i == fromToRows.size() - 1) {
                 if (isBorderBottom) {
                     for (int cellNum = row.getFirstCellNum(); cellNum < row.getLastCellNum(); cellNum++) {
                         Cell cell = row.getCell(cellNum);

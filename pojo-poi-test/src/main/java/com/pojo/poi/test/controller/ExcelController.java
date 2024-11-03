@@ -1,13 +1,16 @@
-package com.pojo.poi.test;
+package com.pojo.poi.test.controller;
 
-import com.pojo.poi.core.excel.ExcelWriter;
 import com.pojo.poi.core.excel.ExcelReader;
+import com.pojo.poi.core.excel.ExcelWriter;
+import com.pojo.poi.test.dto.report.Sales;
 import com.pojo.poi.test.sample.Category;
 import com.pojo.poi.test.sample.Project;
 import com.pojo.poi.test.sample.Report;
+import com.pojo.poi.test.service.ReportService;
 import lombok.SneakyThrows;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,6 +27,9 @@ import java.util.List;
 
 @RestController("/api/v1/excel")
 public class ExcelController {
+    @Autowired
+    private ReportService reportService;
+
     @RequestMapping(value = "/download/excel", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<InputStreamResource> downloadExcel() {
         Report report = sampleReport();
@@ -51,16 +57,12 @@ public class ExcelController {
         return ResponseEntity.ok(report);
     }
 
-    @SneakyThrows
-    @RequestMapping(value = "/copy/excel", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<InputStreamResource> copyExcel(@RequestPart(value = "file") MultipartFile multipartFile) {
-        XSSFWorkbook workbook = new XSSFWorkbook(OPCPackage.open(multipartFile.getInputStream()));
-        Report report = ExcelReader.readSheet(Report.class, workbook.getSheetAt(0));
-
-        String fileName = multipartFile.getOriginalFilename();
-        ExcelWriter excelWriter = ExcelWriter.builder(fileName == null ? multipartFile.getName() : fileName)
+    @RequestMapping(value = "/sales/download/excel", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<InputStreamResource> salesDownloadExcel() {
+        Sales sales = reportService.getSalesData();
+        ExcelWriter excelWriter = ExcelWriter.builder("샘플1")
                 .build()
-                .addExcelDatas(workbook.getSheetName(0), List.of(report), new float[]{12.5f, 31.13f, 6.88f, 12f, 16.25f, 68.75f, 68.75f, 71.75f})
+                .addExcelDatas("샘플1", List.of(sales), new float[]{8.38f, 21, 11, 11, 11, 11, 11, 11, 15})
                 .writeAll();
 
         InputStreamResource resource = new InputStreamResource(excelWriter.getExcelStream());
@@ -72,6 +74,14 @@ public class ExcelController {
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
+    }
+
+    @SneakyThrows
+    @RequestMapping(value = "/sales/upload/excel", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Sales> salesUploadExcel(@RequestPart(value = "file") MultipartFile multipartFile) {
+        XSSFWorkbook workbook = new XSSFWorkbook(OPCPackage.open(multipartFile.getInputStream()));
+        Sales sales = ExcelReader.readSheet(Sales.class, workbook.getSheetAt(0));
+        return ResponseEntity.ok(sales);
     }
 
     public Report sampleReport() {
